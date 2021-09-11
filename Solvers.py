@@ -35,16 +35,34 @@ class BruteForceSolver(object):
 
     def step(self):
         simulator = self.simulator
+        lazy_y, lazy_x = -1, -1
+        max_v = 0
+        max_y, max_x = -1, -1
         for y, row in enumerate(simulator.vegetables):
             for x, cell_val in enumerate(row):
-                if cell_val != 0 and not simulator.harvesters[y][x]:
-                    if simulator.score >= (simulator.num_harvesters + 1) ** 3:
-                        py, px = self.find_lazy_harvester()
-                        if py == -1:
-                            self.op([y, x])
-                        else:
-                            self.op([py, px, y, x])
-                        return
+                if simulator.harvesters[y][x]:
+                    if cell_val == 0:
+                        lazy_y, lazy_x = y, x
+                else:
+                    if cell_val > max_v:
+                        max_y, max_x = y, x
+                        max_v = cell_val
+
+        if max_v > 0:
+            if lazy_x != -1:
+                self.op([lazy_y, lazy_x, max_y, max_x])
+                return
+            if simulator.score >= (simulator.num_harvesters + 1) ** 3:
+                self.op([max_y, max_x])
+                return
+                # if cell_val != 0 and not simulator.harvesters[y][x]:
+                #     if simulator.score >= (simulator.num_harvesters + 1) ** 3:
+                #         py, px = self.find_lazy_harvester()
+                #         if py == -1:
+                #             self.op([y, x])
+                #         else:
+                #             self.op([py, px, y, x])
+                #         return
 
         self.op([-1])
         return
