@@ -161,12 +161,12 @@ class FarmSimulator(object):
     """
     def __init__(self):
         # properties(constants and values)
-        # self.n = 16            # size of farm (N * N cells)
-        # self.m = 5000          # number of vegetables
-        # self.t = 1000          # total turns
-        self.n = 9  # size of farm (N * N cells)
-        self.m = 4  # number of vegetables
-        self.t = 10  # total turns
+        self.n = 16            # size of farm (N * N cells)
+        self.m = 5000          # number of vegetables
+        self.t = 1000          # total turns
+        # self.n = 9  # size of farm (N * N cells)
+        # self.m = 4  # number of vegetables
+        # self.t = 10  # total turns
         self.__t_current = 0       # current turn
         self.__score = 1           # current score
         self.__num_harvesters = 0  # current harvesters
@@ -180,10 +180,10 @@ class FarmSimulator(object):
         self.__validator = ValidationHelper(self.n, self.__harvesters)
 
         # read inputs
-        # assert \
-        #     getList() == [self.n, self.m, self.t],\
-        #     "Invalid Input: [N, M, T] should be [{}, {}, {}]".format(self.n, self.m, self.t)
-        getList()
+        assert \
+            getList() == [self.n, self.m, self.t],\
+            "Invalid Input: [N, M, T] should be [{}, {}, {}]".format(self.n, self.m, self.t)
+        # print(getList())
         self.setup()
 
     def setup(self):
@@ -199,33 +199,42 @@ class FarmSimulator(object):
             growth = VegetableStateChange([r, c, v, True])
             wither = VegetableStateChange([r, c, 0, False])
             self.__vegetables_changes_by_time[s].append(growth)
-            self.__vegetables_changes_by_time[e+1].append(wither)  # 該当ターン(e)の最後 = 次のターン(e+1)の最初に消える
-
+            self.__vegetables_changes_by_time[e].append(wither)
+    
     def reset(self):
         # 盤面とターンをリセットする
         self.__t_current = 0
+        self.__score = 0
+        self.__num_harvesters = 0
         self.__vegetables = [[0 for i in range(self.n)] for j in range(self.n)]
         self.__harvesters = [[0 for i in range(self.n)] for j in range(self.n)]
 
     def step(self, op: List):
-        # TODO: そのターンでの行動を受け付け、1ターン勧める
+        # そのターンでの行動を受け付け、1ターン勧める
+        assert self.__t_current < self.t, "Simulation is over."
         self.__validator.validate(op)
 
-        self.__step_vegetable()
+        self.__step_growth_vegetable()
         self.__step_operation(op)
         self.__step_calculate_score()
+        self.__step_wither_vegetable()
         self.__t_current += 1
         return
 
-    def __step_vegetable(self):
-        # 野菜を生やしたり枯らしたりする
+    def __step_growth_vegetable(self):
+        # 野菜を生やす
         changes: List[VegetableStateChange] = self.__vegetables_changes_by_time[self.__t_current]
         for change in changes:
             if change.is_growth:
                 self.__vegetables[change.y][change.x] = change.value
-            else:
-                self.__vegetables[change.y][change.x] = 0
+        return
 
+    def __step_wither_vegetable(self):
+        # 野菜を枯らす
+        changes: List[VegetableStateChange] = self.__vegetables_changes_by_time[self.__t_current]
+        for change in changes:
+            if not change.is_growth:
+                self.__vegetables[change.y][change.x] = 0
         return
 
     def __step_operation(self, op: List):
@@ -237,6 +246,7 @@ class FarmSimulator(object):
             self.__num_harvesters += 1
             self.__score -= self.__num_harvesters ** 3
             self.__harvesters[y][x] = 1
+            assert self.__score >= 0, "You can't buy harvester."
             return
         elif len(op) == 4:
             cy, cx, ny, nx = op
@@ -249,9 +259,8 @@ class FarmSimulator(object):
         for y, row in enumerate(self.__vegetables):
             for x, cell_val in enumerate(row):
                 if cell_val != 0 and self.__harvesters[y][x]:
-                    self.__vegetables[y][x] = 0 # 収獲
-                    self.__score += cell_val * calculate_connection_cells(self.__harvesters, y, x) # スコア加算
-
+                    self.__vegetables[y][x] = 0  # 収獲
+                    self.__score += cell_val * calculate_connection_cells(self.__harvesters, y, x)  # スコア加算
 
     @property
     def t_current(self):
@@ -278,10 +287,6 @@ class FarmSimulator(object):
         return self.__num_harvesters
 
 
-S = FarmSimulator()
-a = 1
-
-for i in range(10):
-    S.step(getList())
-
-    print(S.score)
+# S = BruteForceSolver()
+# S.solve()
+# print(S.simulator.score)
