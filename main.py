@@ -3,6 +3,7 @@ import re
 import random
 import math
 import copy
+import time
 from heapq import heappush, heappop, heapify
 from functools import cmp_to_key
 from bisect import bisect_left, bisect_right
@@ -209,6 +210,9 @@ class FarmSimulator(object):
         self.__vegetables = [[0 for i in range(self.n)] for j in range(self.n)]
         self.__harvesters = [[0 for i in range(self.n)] for j in range(self.n)]
 
+        # なんと盤面がメモリの新しい箇所に作成されるので、validatorも更新しなければいけない
+        self.__validator = ValidationHelper(self.n, self.__harvesters)
+
     def step(self, op: List):
         # そのターンでの行動を受け付け、1ターン勧める
         assert self.__t_current < self.t, "Simulation is over."
@@ -246,9 +250,6 @@ class FarmSimulator(object):
             self.__num_harvesters += 1
             self.__score -= self.__num_harvesters ** 3
             self.__harvesters[y][x] = 1
-            if self.__score < 0:
-                print(self.__score, self.__num_harvesters)
-                pass
             assert self.__score >= 0, "You can't buy harvester."
             return
         elif len(op) == 4:
