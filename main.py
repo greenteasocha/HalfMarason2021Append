@@ -200,11 +200,11 @@ class FarmSimulator(object):
             wither = VegetableStateChange([r, c, 0, False])
             self.__vegetables_changes_by_time[s].append(growth)
             self.__vegetables_changes_by_time[e].append(wither)
-    
+
     def reset(self):
         # 盤面とターンをリセットする
         self.__t_current = 0
-        self.__score = 0
+        self.__score = 1
         self.__num_harvesters = 0
         self.__vegetables = [[0 for i in range(self.n)] for j in range(self.n)]
         self.__harvesters = [[0 for i in range(self.n)] for j in range(self.n)]
@@ -246,6 +246,9 @@ class FarmSimulator(object):
             self.__num_harvesters += 1
             self.__score -= self.__num_harvesters ** 3
             self.__harvesters[y][x] = 1
+            if self.__score < 0:
+                print(self.__score, self.__num_harvesters)
+                pass
             assert self.__score >= 0, "You can't buy harvester."
             return
         elif len(op) == 4:
@@ -288,5 +291,5 @@ class FarmSimulator(object):
 
 
 # S = BruteForceSolver()
-# S.solve()
+# S.iteration()
 # print(S.simulator.score)
