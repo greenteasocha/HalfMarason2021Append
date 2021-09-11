@@ -39,11 +39,24 @@ class BruteForceSolver(object):
             for x, cell_val in enumerate(row):
                 if cell_val != 0 and not simulator.harvesters[y][x]:
                     if simulator.score >= (simulator.num_harvesters + 1) ** 3:
-                        self.op([y, x])
+                        py, px = self.find_lazy_harvester()
+                        if py == -1:
+                            self.op([y, x])
+                        else:
+                            self.op([py, px, y, x])
                         return
 
         self.op([-1])
         return
+
+    def find_lazy_harvester(self):
+        simulator = self.simulator
+        for y, row in enumerate(simulator.vegetables):
+            for x, cell_val in enumerate(row):
+                if cell_val == 0 and simulator.harvesters[y][x]:
+                    return [y, x]
+
+        return [-1, -1]
 
     def op(self, args):
         print(*args)
